@@ -1,0 +1,202 @@
+<html>
+
+<body>
+<canvas id="c" width="400" height="400">
+</canvas>
+<script src="./tools.js"></script>
+<script>
+let canvas = document.getElementById("c");
+let ctx = canvas.getContext('2d');
+let rect = canvas.getBoundingClientRect();
+const R2D = 180/Math.PI;
+
+let side=5;
+let offset=[200,200];
+let coord=[600,600];
+c.addEventListener("click", (e)=>{
+  collisionFunc();
+});
+// all collision-registered objects?
+let coll = [];
+function collisionFunc() {
+}
+function registerCollision(obj) {
+  coll.push(obj);
+}
+let interval;
+
+// drawing tracker
+let draw_call = ( ()=> {
+  let draws = [];
+  return {
+    render: () => {    
+      for (let i=0;i<draws.length;i++) {
+            
+        if (typeof draws[i].draw == 'function')
+        draws[i].draw();
+      }
+    },
+    add: (obj) => {
+      draws.push(obj);
+    }
+  }; // end return statement
+})(); // end immediately invoked function expression
+
+let register_call = ( ()=> {
+  let registered = [];
+  // begin init
+    document.addEventListener('mousemove', e=>{
+    // global eventlistneer checks every object
+    for (let i=0;i<registered.length;i++) {
+      let r = registered[i];
+      // just move
+      r.moveto(e);
+      // check hover status
+      if (r.within(e)) {
+        r.hovered();
+      } else {
+        r.moveout();
+      }
+    }
+  });
+  
+  document.addEventListener('mouseup', e=>{
+    for (let i=0;i<registered.length;i++) {
+      let r = registered[i];
+      r.released();
+    }
+    
+  });
+  document.addEventListener('mousedown', e=>{
+    for (let i=0;i<registered.length;i++) {
+      let r = registered[i];
+      if (r.within(e)) {
+        console.log(r);
+        r.clicked();
+      } else {
+        r.released();
+      }
+    }
+    let mouseX = event.clientX  - rect.left;//+ document.body.scrollLeft
+    let mouseY = event.clientY - rect.top;//+ document.body.scrollTop 
+
+  });
+  // end init
+  return {
+    add: (obj) => {
+      registered.push(obj);
+    },
+  }
+})();
+
+function same_but_offset(a, b) {
+  for (let i=0;i<b.length;i++) {
+    if (b[i] == a[0]) {
+      if (is_same(a, b, i)) return true;
+    }
+  }
+  return false;
+}
+let is_same = (a, b, offset=0) => {
+  let samesame =  (a.length == b.length) && ((a, b, offset) => {
+    for (let i=0; i<a.length;i++) {
+      if (a[i] != b[((i+offset)%b.length)]) return false;
+    }
+    return true;
+});
+  return samesame;
+};
+
+(function() {
+  let square = new Polygon(ctx, canvas.width/2, canvas.height/2, 100, 4);
+  
+  draw_call.add(square);
+  registerCollision(square);
+  let p1 = square.splitLine(0);
+  let p2 = square.splitLine(1);
+  let p3 = square.splitLine(2);
+  let p4 = square.splitLine(3);
+  
+  //console.log(canvas.width/2, canvas.height/2);
+  let middle = new Dot(canvas.width/2, canvas.height/2, 10, square);
+  
+  
+  let reg = new RegisterClick(middle);
+  
+  // difference between register_call and 'register click'??????
+  //register_call.add(middle);
+  square.linkline(p1, middle);
+  square.linkline(p2, middle);
+  square.linkline(p3, middle);
+  square.linkline(p4, middle);
+  square.points.push(middle);
+  see_fn(square);
+  let arr = square.findfaces();
+  //console.log(arr);
+  let cleanarr = arr.filter((x)=>x.length && x.length <=5);
+  //console.log(cleanarr);
+  let dedupearr = [];
+  for (let i=0;i<cleanarr.length;i++) {
+      let newsol = true;
+    for (let j=0;j<dedupearr.length;j++) {
+      if (same_but_offset(cleanarr[i], dedupearr[j])) {
+        newsol = false;
+        break;
+      }
+      
+    }
+    if (newsol) dedupearr.push(cleanarr[i]);
+  }
+  // for rotation, you also need to re-calculate stuff...in this case, area will stay the same, but the area #s will not be automatically updates when the polygon changes
+  square.rotate(Math.PI/4);
+  
+  // now this is an array of faces...
+  for (let i=0;i<dedupearr.length;i++) {
+    //console.log(dedupearr[i]);
+    square.regShape(dedupearr[i]);
+    
+    //square.regShape([0,4,8]);
+    //console.log(square.points[0].x, square.points[0].y);
+    //console.log(square.points[4].x, square.points[4].y);
+    //console.log(square.points[8].x, square.points[8].y);
+    //square.regShape([8,7,0]);
+    //break;
+  }
+  /// console.log(getangle(square.lines[0].getVec(), square.lines[1].getVec()));
+  
+  //let returned_edge = square.getVertex(1).half().connect(dot);// <-- creates a new edge...
+  interval = setInterval(function(){
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    // draw all the objects
+    draw_call.render();
+    
+    }, 30);
+
+})();
+/*
+for (let i=-1;i<1;i+=0.1) {
+  //let j = Math.sqrt(1-i*i);
+  for (let  j=-1;j<1;j+=0.1) {
+    if (Math.abs(Math.atan(j/i) - Math.atan2(j, i)) > 0.05)
+    console.log(i, j, R2D*Math.atan(j/i), R2D*Math.atan2(j, i));
+  }
+}*/
+
+// global collision function...
+/*collisionFunc() {
+}
+  
+class circle{
+draw(ctx){
+
+}
+}
+function calc(s, deg){
+
+}
+function getCoord(){
+return 
+} */
+</script>
+</body>
+</html>
