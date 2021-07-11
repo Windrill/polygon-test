@@ -4,7 +4,7 @@ tested:
 - line segmenting
 
 next:
-group common functions (triangle area, w/ options eg. point/angle/line)
-check color-picker common code
-triangulation: anything other than 'ear picking'? also, check positive/negative degrees for concave polygons
-decision to update 'area' and other 'calculations', register polygon to those updates
+- group common functions (triangle area, w/ options eg. point/angle/line)
+- check color-picker common code
+- triangulation: anything other than 'ear picking'? also, check positive/negative degrees for concave polygons
+- decision to update 'area' and other 'calculations', register polygon to those updates

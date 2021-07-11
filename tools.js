@@ -1,12 +1,3 @@
-// what is a 3d cross - 3d dot like.....what does that num even mean
-let RAD2ANG = (x)=>180*x/Math.PI;
-function getangle(x, y) {
-  let len = (x) => Math.sqrt(x.x*x.x + x.y*x.y);
-  let dot = (x,y) => x.x*y.x + x.y*y.y;
-  let cross = (x,y) => x.x*y.y - y.x*x.y;
-  //console.log(x, y, x.x, dot(x,y));
-  return Math.acos(dot(x,y)/(len(x)*len(y)));
-}
 function componentToHex(c) {
   var hex = parseInt(c).toString(16);
   return hex.length == 1 ? "0" + hex : hex;
@@ -18,58 +9,7 @@ function rgbToHex(r, g, b) {
 function randomHex() {
   return rgbToHex(Math.random()*255., Math.random()*255., Math.random()*255.);
 }
-// for html5
-class Color {
-  static getDiff(num, style='random') {
-    let colors = [];
-    for (let i=0;i<num;i++) {
-      colors.push(randomHex());
-    }
-    return colors;
-  }
-}
-// register_click, hover, click, move
-function see_fn(obj){
-  console.log(typeof obj.hover === 'function');
-  //if ((typeof obj.hover === 'function')) {
-    //RegisterClick(obj);
-//}
-}
-// 'delegation'?
-class RegisterClick {
-  constructor(obj){
-    //console.log("should be added upon constructor");
-    this.obj = obj;
-    this.hover = false;
-    this.click = false;
-    register_call.add(this);
-    draw_call.add(this);    
-  }
-  clicked() {
-    this.click = true;
-    console.log("Click");
-  }
-  released() {
-    this.click = false;
-  }
-  hovered() {
-    this.hover = true;
-  }
-  moveout() {
-    this.hover = false;
-  }
-  // wrapper....explicit expose for i guess
-  within(e) {
-    return this.obj.within(e);
-  }
-  draw() {
-    return this.obj.draw(this.hover, this.click);
-  }
-  moveto(e) {
-    if (this.click)
-      return this.obj.moveto(e);
-  }
-}
+
 let p_id = 0;
 class Dot {
   constructor(x,y, r=10, polygon=null) {
@@ -108,8 +48,8 @@ class Dot {
   }
   within(e) {
     let pos = {x: e.clientX, y: e.clientY};
-  //console.log(Math.sqrt(Math.pow(this.x-pos.x,2)+Math.pow(this.y-pos.y, 2)), this.x, pos.x);
-  let r = this.circleRadius/2;
+    //console.log(Math.sqrt(Math.pow(this.x-pos.x,2)+Math.pow(this.y-pos.y, 2)), this.x, pos.x);
+    let r = this.circleRadius/2;
     // make this a polygon in the future....
     if (Math.sqrt(Math.pow(this.x+r-pos.x,2)+Math.pow(this.y+r-pos.y, 2)) < this.circleRadius) {
       return true;
@@ -200,7 +140,8 @@ class Line{
     ctx.beginPath();
     ctx.moveTo(this.p1.x, this.p1.y);
     ctx.lineTo(this.p2.x, this.p2.y);
-    ctx.stroke();    
+    ctx.stroke();
+    ctx.closePath();
     ctx.strokeStyle = color;
     //console.log(color);
     ctx.lineWidth = 2;
@@ -209,13 +150,14 @@ class Line{
       let p2text = this.p2.x + ", " + this.p2.y;
       p1text = `${this.p1.id}\n(${this.p1.x.toFixed(0)},${this.p1.y.toFixed(0)})`;
       p2text = `${this.p2.id}\n(${this.p2.x.toFixed(0)},${this.p2.y.toFixed(0)})`;
+      // console.log(this.p1.x, this.p1.y);
       //p2text = this.p2.id;  
       ctx.fillText(p1text, this.p1.x, this.p1.y);//, 140); <--140 is max width..
       ctx.fillText(p2text, this.p2.x, this.p2.y);
       ctx.fillStyle="#000000";
 
     }
-  //  ctx.closePath();
+    
   }
   //wrong f/n
   rotate(p1, theta){
@@ -288,10 +230,13 @@ class PolygonArea {
     //return straight*t3.x/2;
     return t1.y * t3.x / 2;
   }
+  // calculate polygon area
   calculate() {
     let a = 0;
     this.midpoint.x = 0;
     this.midpoint.y = 0;
+    // console.log(this.trianglearr);
+    // console.log(this.polygon.points);
     for (let i=0;i<this.trianglearr.length;i++) {
       this.midpoint.x += this.polygon.points[this.trianglearr[i]].x;
       this.midpoint.y += this.polygon.points[this.trianglearr[i]].y;
@@ -306,29 +251,48 @@ class PolygonArea {
       a += Math.abs(area);
     }
     this.area = a;
-    console.log(this.area);
+    // console.log(this.area);
     this.recalculate = false;
-    return a;  
+    return a;
   }
   draw(){
     if (this.recalculate) { this.calculate(); }
-    ctx.fillText((this.area*100/19253).toFixed(1), this.midpoint.x, this.midpoint.y);
+    ctx.fillText((this.area*100/20000).toFixed(1), this.midpoint.x, this.midpoint.y);
     ctx.fillStyle = "#1100aa";
   }
   recalc() {
     this.recalculate = true;
   }
 }
+
+class anygon {
+  constructor() {
+    // passively managed....or not managed
+    this.edges = [];
+    this.points = {};
+  }
+  add_points(...args) {
+    for (let i=0;i<args.length;i++) {
+      console.log(typeof args[i]);
+      if (typeof args[i] === point) {
+      // this.points.push(args[i]);
+      }
+    }
+  }
+}
 // okay, in the 2d world, define polygon as a collection of vertices/points!
+// convex polygon
 class Polygon {
   // calculates area for shape
   // only works for convex shapes, as it only retains point information
   // draw every time
   drawArea() {
+    // if (this.register_shape.length == 0) {
+    //   console.log("no need to draw area because this polygon did not register to draw");
+    // }
     for (let i=0;i<this.register_shape.length;i++) {
-    this.register_shape[i].draw();
-      //recalc();
-      }
+      this.register_shape[i].draw();
+    }
   }
   // one time initialization to define 'shapes' in the polygon you want to track
   regShape(inputs) {
@@ -339,56 +303,58 @@ class Polygon {
       this.register_shape[i].recalc();
     }
   }
+  getMidpoint() {
+    return {x:this.x, y:this.y};
+  }
   constructor(ctx,x=100,y=100,r=5, sides=0) {
-    this.lines = [];
-    this.points = [];
     // convex polygon intersection? no issue....since, it checks all edges........// and check smth completely inside another?
     this.edges = [];
+    this.points = {};
     // all 'shapes' with areas, you put it here
     this.register_shape = [];
-    this.x = x;
-    this.y=y;
-    this.r=r;
-    this.sides=sides;
-    if (this.sides != 0) {
+    // make it such that x,y is midpoint
+    this.x = x ;
+    this.y = y ;
+    this.r = r;
+    this.sides = sides;
+    if (this.sides > 0) {
       // traverse around for the edge?
       const step=2*Math.PI/this.sides;
       let px, py;
       let orgPoint;
+      let d1;
+      let d2;
       for(let i=0;i<sides;i++) {
-        px = (x-r) + r*Math.cos(i*step);
-        py = (y-r) + r*Math.sin(i*step);
-        //if (i==0) {
-        //  this.points.push(new Dot(y-r, x-r));
-      //}
-        this.points.push(new Dot(px, py));
-      //console.log("init..", px, py, this.points);
+        px = (this.x) + r*Math.cos(i*step);
+        py = (this.y) + r*Math.sin(i*step);
+        console.log(px, py);
+        d1 = new Dot(px, py);
+        this.points[d1.id] = d1;
+
+        // Push edges
         if (i == 0) {
-          orgPoint = this.points[this.points.length-1];
-          //this.lines.push(new Line(this.points[this.points.length-1], this.points[this.points.length-2]));
+          orgPoint = d1;
+          //this.edges.push(new Line(this.points[this.points.length-1], this.points[this.points.length-2]));
         } else {
           // drawing from 'right' to 'left' since i'm turning clockwise
-          this.lines.push(new Line(this.points[this.points.length-1], this.points[this.points.length-2]));
+          this.edges.push(new Line(d1, d2));
         }
-      }
-      this.lines.push(new Line(this.points[this.points.length-1], orgPoint));
-    } //
+        d2 = d1;
+      } // End looping through sides
+      this.edges.push(new Line(d1, orgPoint));
+    } // End drawing sided polygon
   } // end constructor
+
   calc() {
-    let trav = [];
-    // init trav array
-    for (let i=0;i<this.points.length;i++) {  
-      trav.push([]);
-      for (let j=0;j<this.points.length;j++) {
-        trav[i].push(0);
-      }
-    }
+    let trav = {};
+    
     // put all edges in this.edges; edges are consisted of 2 points, 4 points in arr i guess
-    for (let v=0;v<this.points.length;v++) {
+    for (let v=0;v<pointsLength;v++) {
       let vObj = this.points[v];
       let objsize = Object.keys(vObj.linked).length;
       for (let n=0;n<objsize;n++) {
-        if (trav[vObj.p_id][vObj.linked[n].p_id] == 0) {
+        if (!trav[vObj.p_id] || !trav[vObj.p_id][vObj.linked[n].p_id]) {
+          trav[vObj.p_id] = {};
           trav[vObj.p_id][vObj.linked[n].p_id] = 1;
           this.sides.push([vObj.position[0], vObj.position[1], vObj.linked[n].position[0], vObj.linked[n].position[1]]);
         }
@@ -455,9 +421,8 @@ class Polygon {
   }
   findfaces() {
     let arr = []
-    for (let i=0;i<this.points.length;i++) {
+    for (let i in this.points) {
       arr = arr.concat(this.looploop(this.points[i]));
-      //break;
     }
     return arr;
   }
@@ -467,42 +432,42 @@ class Polygon {
       ctx.arc(75, 75, 50, 0, Math.PI * 2, true); // Outer circle
       ctx.closePath();
     } else {
-      for(let v=0;v<this.lines.length;v++) {
-        this.lines[v].draw(this.lines[v].color);
+      for(let v=0;v<this.edges.length;v++) {
+        this.edges[v].draw(this.edges[v].color);
       }
     } // end else
-    for (let i =0;i<this.points.length;i++){
+    for (let a in this.points) {
       //console.log(this.points[i].x,this.points[i].y);
       //(this.points[i]).rotate(0);
       //atan2: - pi to pi, inclusive
-      (this.points[i]).rotate(0.0, {x:100,y:100 });
+      (this.points[a]).rotate(0.0, {x:100,y:100 });
     }
     this.drawArea();
   }
   
-  rotate(r) {
-        for (let i =0;i<this.points.length;i++){
-      //console.log(this.points[i].x,this.points[i].y);
+  rotate(r, o={x:100, y:100}) {
+    for (let a in this.points) {
       //(this.points[i]).rotate(0);
       //atan2: - pi to pi, inclusive
-      (this.points[i]).rotate(r, {x:100,y:100 });
+      (this.points[a]).rotate(r, o);
     }
   }
-  getVertex(i) {
-    return this.points[i];
+  getVertex(id) {
+    return this.points[id];
   }
   // get line segment
   getLine(i) {
-    return this.lines[i];
+    return this.edges[i];
   }
   
   splitLine(i) {
-    let newLine = this.lines[i].halfLine();
+    let newLine = this.edges[i].halfLine();
     //console.log(newLine, newLine.p1);
-    this.points.push(newLine.getP1());
-    this.lines.push(newLine);
+    let d1 = newLine.getP1();
+    this.points[d1.id] = d1;
+    this.edges.push(newLine);
     
-    return this.points[this.points.length-1];
+    return this.points[d1.id];
   }
   
   // can be clientx pos or relative pos, depends if you put polygin on absolute or relative pos
@@ -519,14 +484,14 @@ class Polygon {
   }
   // add a point and return it.....
   addpoint(point) {
-    this.points.push(point);
+    this.points[point.id] = point;
     return point;
   }
   
   // err....link 2 lines within the polygon...
   linkline(i, j) {
     let l = new Line(i, j);
-    this.lines.push(l);
+    this.edges.push(l);
     return l;
   }
 } // end class polygon

@@ -1,18 +1,18 @@
 <html>
-
+  <head></head>
 <body>
-<canvas id="c" width="400" height="400">
+<canvas id="c" width="1400" height="1500">
 </canvas>
+<script src="./common/js_lib.js"></script>
+<script src="./common/angles.js"></script>
+<script src="./common/click_register.js"></script>
 <script src="./tools.js"></script>
+<script src="./common/constants.js"></script>
 <script>
 let canvas = document.getElementById("c");
 let ctx = canvas.getContext('2d');
-let rect = canvas.getBoundingClientRect();
-const R2D = 180/Math.PI;
+// let rect = canvas.getBoundingClientRect();
 
-let side=5;
-let offset=[200,200];
-let coord=[600,600];
 c.addEventListener("click", (e)=>{
   collisionFunc();
 });
@@ -25,13 +25,12 @@ function registerCollision(obj) {
 }
 let interval;
 
-// drawing tracker
+// tracker that tracks drawing
 let draw_call = ( ()=> {
   let draws = [];
   return {
     render: () => {    
-      for (let i=0;i<draws.length;i++) {
-            
+      for (let i=0;i<draws.length;i++) {           
         if (typeof draws[i].draw == 'function')
         draws[i].draw();
       }
@@ -70,16 +69,18 @@ let register_call = ( ()=> {
   document.addEventListener('mousedown', e=>{
     for (let i=0;i<registered.length;i++) {
       let r = registered[i];
+      console.log(e.clientX, e.clientY);
       if (r.within(e)) {
-        console.log(r);
+        // console.log(r);
         r.clicked();
       } else {
         r.released();
       }
     }
-    let mouseX = event.clientX  - rect.left;//+ document.body.scrollLeft
-    let mouseY = event.clientY - rect.top;//+ document.body.scrollTop 
+    // let mouseX = event.clientX  - rect.left;//+ document.body.scrollLeft
+    // let mouseY = event.clientY - rect.top;//+ document.body.scrollTop 
 
+    // console.log(mouseX, document.body.scrollLeft);
   });
   // end init
   return {
@@ -89,26 +90,9 @@ let register_call = ( ()=> {
   }
 })();
 
-function same_but_offset(a, b) {
-  for (let i=0;i<b.length;i++) {
-    if (b[i] == a[0]) {
-      if (is_same(a, b, i)) return true;
-    }
-  }
-  return false;
-}
-let is_same = (a, b, offset=0) => {
-  let samesame =  (a.length == b.length) && ((a, b, offset) => {
-    for (let i=0; i<a.length;i++) {
-      if (a[i] != b[((i+offset)%b.length)]) return false;
-    }
-    return true;
-});
-  return samesame;
-};
-
 (function() {
-  let square = new Polygon(ctx, canvas.width/2, canvas.height/2, 100, 4);
+  // 2nd and 3rd arguments smth like midpoint numbers
+  let square = new Polygon(ctx, 100, 100, 100, 4);
   
   draw_call.add(square);
   registerCollision(square);
@@ -117,8 +101,9 @@ let is_same = (a, b, offset=0) => {
   let p3 = square.splitLine(2);
   let p4 = square.splitLine(3);
   
-  //console.log(canvas.width/2, canvas.height/2);
-  let middle = new Dot(canvas.width/2, canvas.height/2, 10, square);
+  // should be middle of box....
+  let midpoint_structure = square.getMidpoint();
+  let middle = new Dot(midpoint_structure.x, midpoint_structure.y, 10, square);
   
   
   let reg = new RegisterClick(middle);
@@ -129,8 +114,7 @@ let is_same = (a, b, offset=0) => {
   square.linkline(p2, middle);
   square.linkline(p3, middle);
   square.linkline(p4, middle);
-  square.points.push(middle);
-  see_fn(square);
+  square.points[middle.id] = middle;
   let arr = square.findfaces();
   //console.log(arr);
   let cleanarr = arr.filter((x)=>x.length && x.length <=5);
@@ -148,7 +132,7 @@ let is_same = (a, b, offset=0) => {
     if (newsol) dedupearr.push(cleanarr[i]);
   }
   // for rotation, you also need to re-calculate stuff...in this case, area will stay the same, but the area #s will not be automatically updates when the polygon changes
-  square.rotate(Math.PI/4);
+  square.rotate(Math.PI/4, square.getMidpoint());
   
   // now this is an array of faces...
   for (let i=0;i<dedupearr.length;i++) {
@@ -173,30 +157,6 @@ let is_same = (a, b, offset=0) => {
     }, 30);
 
 })();
-/*
-for (let i=-1;i<1;i+=0.1) {
-  //let j = Math.sqrt(1-i*i);
-  for (let  j=-1;j<1;j+=0.1) {
-    if (Math.abs(Math.atan(j/i) - Math.atan2(j, i)) > 0.05)
-    console.log(i, j, R2D*Math.atan(j/i), R2D*Math.atan2(j, i));
-  }
-}*/
-
-// global collision function...
-/*collisionFunc() {
-}
-  
-class circle{
-draw(ctx){
-
-}
-}
-function calc(s, deg){
-
-}
-function getCoord(){
-return 
-} */
 </script>
 </body>
 </html>
