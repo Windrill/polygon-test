@@ -10,97 +10,6 @@ function randomHex() {
   return rgbToHex(Math.random()*255., Math.random()*255., Math.random()*255.);
 }
 
-let p_id = 0;
-class Dot {
-  constructor(x,y, r=10, polygon=null) {
-    this.id = p_id++;
-    this.linked = {};
-    this.x = x;
-    this.y = y;
-    this.polygon = polygon;
-    // for the exagerrated representation
-    this.circleRadius = r;
-    this.color = randomHex();
-  }
-  draw(hover=false, clicked=false) {
-    // draw a circle on purpose, to mak it bigger
-    ctx.beginPath();
-    
-    ctx.arc(this.x, this.y, this.circleRadius, 0, Math.PI * 2, true); // Outer circle
-    if (clicked) {
-      ctx.fillStyle = "#1100aa";
-    } else {
-      ctx.fillStyle="#ffffff";
-    }
-    ctx.strokeStyle = this.color;
-    ctx.stroke();
-    ctx.closePath();
-  }
-  addNeighbor(other) {
-    this.linked[other.id] = other;
-  }
-  moveto(e) {
-    let pos = {x: e.clientX, y: e.clientY};
-    this.x = pos.x;
-    this.y = pos.y;
-    if (this.polygon)
-    this.polygon.recalc();
-  }
-  within(e) {
-    let pos = {x: e.clientX, y: e.clientY};
-    //console.log(Math.sqrt(Math.pow(this.x-pos.x,2)+Math.pow(this.y-pos.y, 2)), this.x, pos.x);
-    let r = this.circleRadius/2;
-    // make this a polygon in the future....
-    if (Math.sqrt(Math.pow(this.x+r-pos.x,2)+Math.pow(this.y+r-pos.y, 2)) < this.circleRadius) {
-      return true;
-    }
-  }
-  move(a) {
-    this.x += a.x;
-    this.y += a.y;
-  }
-  // radian huh
-  rotat(theta, o1={x:0,y:0}){
-    let angle = Math.atan((this.y-o1.y)/(this.x-o1.x));
-    if (angle < -Math.PI/2) {
-      console.log("Smaller than.....");
-      angle = -Math.PI/2;
-    }
-    if (angle > Math.PI/2) {
-      console.log("...");
-      angle = Math.PI/2;
-    }
-    
-    let r = Math.sqrt((this.x-o1.x)*(this.x-o1.x) + (this.y-o1.y)*(this.y-o1.y));
-    if (Math.abs(this.x-o1.x) < 0.1 || (this.y-o1.y)/(this.x-o1.x) > r*10) { // i dont want infinity eh
-    console.log("!!", this.x-o1.x);
-      angle = Math.PI/2;
-    }
-    // evaluate the sin function at the angle coord since its rate of change is the one at that spot
-    let dx = r * Math.cos(angle+theta);//-this.x;
-    let dy = r * Math.sin(angle+theta);//-this.y;
-    console.log(this.x, dx, this.y, dy, RAD2ANG(Math.cos(angle+theta)), RAD2ANG(Math.sin(angle+theta)));
-    //if (angle < -1)
-    if (Math.abs(this.y-o1.y) < 0.1) {// i dont want infinity eh
-    //console.log("Catching a y");
-    //console.log(this.x, this.y, (this.x-o1.x), (this.y-o1.y), (this.y-o1.y)/(this.x-o1.x), angle, dx, dy);
-    angle = 0;
-    }
-    
-    this.x=dx;this.y=dy;
-  }
-  rotate(theta, o1={x:0,y:0}){
-    let angle = Math.atan2(this.y-o1.y,(this.x-o1.x));
-    let r = Math.sqrt((this.x-o1.x)*(this.x-o1.x) + (this.y-o1.y)*(this.y-o1.y));
-    let dx = (r * Math.cos(angle+theta)+o1.x)-(r * Math.cos(angle)+o1.x);//-this.x;
-    let dy = (r * Math.sin(angle+theta)+o1.y)-(r * Math.sin(angle)+o1.y);//-this.y;
-   // console.log(this.x, dx, this.y, dy, Math.cos(angle+theta)*R2D, Math.sin(angle+theta)*R2D);
-    this.x+=dx;this.y+=dy;
-  }
-  subtract(other) {
-    return {x: this.x - other.x, y: this.y - other.y};
-  }
-}
 class Line{
   constructor(p1,p2) {
     this.p1 = p1;
@@ -109,6 +18,7 @@ class Line{
     p2.addNeighbor(p1);
     //console.log(this.p1, this.p2);
     this.color = randomHex();
+    this.lineWidth = 2;
     //this.neighbors = [];
   }
   
@@ -137,14 +47,16 @@ class Line{
   getP1() { return this.p1; }
   getP2() { return this.p2; }
   draw(color, num=true) {
+    // putting strokestyle after closing path will 'pollute' the stroke width for the next draw
+    ctx.strokeStyle = color;
+    ctx.lineWidth = this.lineWidth;
     ctx.beginPath();
     ctx.moveTo(this.p1.x, this.p1.y);
     ctx.lineTo(this.p2.x, this.p2.y);
     ctx.stroke();
     ctx.closePath();
-    ctx.strokeStyle = color;
-    //console.log(color);
-    ctx.lineWidth = 2;
+    // if (this.lineWidth != 2)
+    // console.log(this.p1.id, this.p2.id, this.lineWidth);
     if (num) {
       let p1text = this.p1.x + ", " + this.p1.y;
       let p2text = this.p2.x + ", " + this.p2.y;
@@ -158,6 +70,9 @@ class Line{
 
     }
     
+  }
+  thick(lineWidth = 5) {
+    this.lineWidth = lineWidth;
   }
   //wrong f/n
   rotate(p1, theta){
@@ -180,16 +95,6 @@ class Face {
   }
 }
 
-  function protate(p1, theta, o1={x:0,y:0}){
-    let angle = Math.atan2(p1.y-o1.y,(p1.x-o1.x));
-    let r = Math.sqrt((p1.x-o1.x)*(p1.x-o1.x) + (p1.y-o1.y)*(p1.y-o1.y));
-    let dx = (r * Math.cos(angle+theta)+o1.x)-(r * Math.cos(angle)+o1.x);//-this.x;
-    let dy = (r * Math.sin(angle+theta)+o1.y)-(r * Math.sin(angle)+o1.y);//-this.y;
-    //console.log("ROT", dx, dy, p1.x+dx, p1.y+dy);
-   //console.log(this.x, dx, this.y, dy, Math.cos(angle+theta)*R2D, Math.sin(angle+theta)*R2D);
-    p1.x+=dx;p1.y+=dy;
-    
-  }
 class PolygonArea {
   constructor(polygon, trianglearr) {
     this.area = 0;
@@ -265,35 +170,50 @@ class PolygonArea {
   }
 }
 
-class anygon {
+class cdrawable {
   constructor() {
-    // passively managed....or not managed
+    this.register_shape = [];
     this.edges = [];
-    this.points = {};
   }
-  add_points(...args) {
-    for (let i=0;i<args.length;i++) {
-      console.log(typeof args[i]);
-      if (typeof args[i] === point) {
-      // this.points.push(args[i]);
-      }
-    }
-  }
-}
-// okay, in the 2d world, define polygon as a collection of vertices/points!
-// convex polygon
-class Polygon {
-  // calculates area for shape
+  // should be 'area' feature.....add to cdrawable, to call all the area 'action' function, to achieve extensible-without-modification
+// calculates area for shape
   // only works for convex shapes, as it only retains point information
   // draw every time
   drawArea() {
     // if (this.register_shape.length == 0) {
     //   console.log("no need to draw area because this polygon did not register to draw");
     // }
+    if (!this.register_shape) return;
     for (let i=0;i<this.register_shape.length;i++) {
       this.register_shape[i].draw();
     }
   }
+
+  draw() {
+    if (this.sides==0) {
+      ctx.beginPath();
+      ctx.arc(75, 75, 50, 0, Math.PI * 2, true); // Outer circle
+      ctx.closePath();
+    } else {
+      for(let v=0;v<this.edges.length;v++) {
+        this.edges[v].draw(this.edges[v].color);
+      }
+    } // end else
+    for (let a in this.points) {
+      //console.log(this.points[i].x,this.points[i].y);
+      //(this.points[i]).rotate(0);
+      //atan2: - pi to pi, inclusive
+      // (this.points[a]).rotate(0.0, {x:100,y:100 });
+    }
+    this.drawArea();
+  }
+}
+// Explicitly managed edges...???
+// Don't 
+
+// okay, in the 2d world, define polygon as a collection of vertices/points!
+// convex polygon
+class Polygon extends cdrawable {
   // one time initialization to define 'shapes' in the polygon you want to track
   regShape(inputs) {
     this.register_shape.push(new PolygonArea(this, inputs));
@@ -307,11 +227,12 @@ class Polygon {
     return {x:this.x, y:this.y};
   }
   constructor(ctx,x=100,y=100,r=5, sides=0) {
+    super();
+    console.log("Creating polygon with ", sides, " sides");
+    console.log(arguments);
     // convex polygon intersection? no issue....since, it checks all edges........// and check smth completely inside another?
-    this.edges = [];
     this.points = {};
     // all 'shapes' with areas, you put it here
-    this.register_shape = [];
     // make it such that x,y is midpoint
     this.x = x ;
     this.y = y ;
@@ -361,6 +282,7 @@ class Polygon {
       }
     }
   }
+
   looploop(p, arr=[], trav={}){
     let ret = [];
     if(trav[p.id]) {
@@ -426,24 +348,6 @@ class Polygon {
     }
     return arr;
   }
-  draw() {
-    if (this.sides==0) {
-      ctx.beginPath();
-      ctx.arc(75, 75, 50, 0, Math.PI * 2, true); // Outer circle
-      ctx.closePath();
-    } else {
-      for(let v=0;v<this.edges.length;v++) {
-        this.edges[v].draw(this.edges[v].color);
-      }
-    } // end else
-    for (let a in this.points) {
-      //console.log(this.points[i].x,this.points[i].y);
-      //(this.points[i]).rotate(0);
-      //atan2: - pi to pi, inclusive
-      (this.points[a]).rotate(0.0, {x:100,y:100 });
-    }
-    this.drawArea();
-  }
   
   rotate(r, o={x:100, y:100}) {
     for (let a in this.points) {
@@ -452,8 +356,11 @@ class Polygon {
       (this.points[a]).rotate(r, o);
     }
   }
-  getVertex(id) {
+  getPoint(id) {
     return this.points[id];
+  }
+  getOnePoint() {
+    return this.points[Object.keys(this.points)[0]];
   }
   // get line segment
   getLine(i) {
@@ -485,6 +392,8 @@ class Polygon {
   // add a point and return it.....
   addpoint(point) {
     this.points[point.id] = point;
+    // need to update edges!!!
+    // if the edge doesn't exist in a polygon, need to add them?
     return point;
   }
   
@@ -495,3 +404,73 @@ class Polygon {
     return l;
   }
 } // end class polygon
+
+class anygon extends Polygon {
+  // don't steal all constructors yet
+  constructor(...args) {
+    //ctx=null,x=100,y=100,r=5, sides=0
+    super(...args); // lol let polygon call cdrawable's constructor then
+    
+    this.sides = -1;
+    // passively managed....or not managed
+    // passively managed hence follows points! you must add all neighboring points to the anygon, anygon won't search the rest of connected points to edges
+    this.edgeMatrix = {};
+    // points are still in an array???!
+  }
+
+  // won't add any points here...will just get all its immediate edges..
+  registerEdges(...args) {
+    for (let i=0;i<args.length;i++) {
+      if (args[i].constructor.name === "Dot") {
+        // this.points.push(args[i]);
+        // lol, put sorted edges from low-id to high-id in edges cache
+        let lObj = args[i].linked;
+        console.log(lObj);
+        let id1 = args[i].id;
+        for (let l in lObj) {
+          let id2 = lObj[l].id;
+          console.log(id2, l);
+          // wanna link?
+          if (id2 < id1) {
+            // link from their perspective
+            console.log("registering....from", lObj[l].id);
+            this.registerEdges(lObj[l]);
+          }
+          if (!this.edgeMatrix[id1]) this.edgeMatrix[id1] = {};
+          // if edg already recorded, then dont record
+          if (this.edgeMatrix[id1][id2]) {
+            continue;
+          } else {
+            // console.log(args[i], lObj[l]);
+            this.edgeMatrix[id1][id2] = this.edges.length;
+            this.edges.push(new Line(args[i], lObj[l])); // smaller id to larger id
+          }
+        }
+      }
+      
+    }
+  } // end addpoints
+  // point or id...
+  highlightLine(id1, id2, thickness=5) {
+    let i1=0; let i2=0;
+    if (isNaN(id1) && id1.constructor.name === "Dot") {
+      i1=id1.id;
+      i2 = id2.id;
+    }
+    else if (!isNaN(id1)) {
+      i1 = id2; i2 = id2;
+    } else {
+      console.log("Wrong input!! Line is not number or dot"); return;
+    }
+    //end type-based check....
+    let ids = [i1,i2];
+    if (i1 > i2) ids = [i2, i1];
+    if (this.edgeMatrix[ids[0]] && this.edgeMatrix[ids[0]][ids[1]]) {
+      let edgePos = this.edgeMatrix[ids[0]][ids[1]];
+      console.log(edgePos);
+      this.edges[edgePos].thick(thickness);
+    } else {
+      console.log("cannot find the edge in this ngon!!", ids, this.edgeMatrix[ids[0]]);
+    }
+  }
+}
