@@ -16,5 +16,8 @@ let is_same = (a, b, offset=0) => {
   });
 };
 
+// 'object' quick check
+// can't realy wrap with a condition? eg. check this object must be 'dot'
+
 
 // I don't care if my stuff is stored in Object.keys format or array format, i need a looper

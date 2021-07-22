@@ -6,10 +6,11 @@
 <script src="./common/js_lib.js"></script>
 <script src="./common/angles.js"></script>
 <script src="./common/click_register.js"></script>
-
+<script src="./shapes/polygon.js"></script>
 <script src="./shapes/dot.js"></script>
 
 <script src="./tools.js"></script>
+<script src="./computations.js"></script>
 <script src="./common/constants.js"></script>
 <script>
 let canvas = document.getElementById("c");
@@ -97,7 +98,7 @@ let register_call = ( ()=> {
 (function() {
   let square = new Polygon(ctx, 100, 100, 100, 4);
   // freely drawn ngon....
-  let free1 = new anygon(ctx, 250, 280, 100, 6, 7);
+  let free1 = new anygon(ctx, 280, 280, 100, 6, 7);
   // reference to the 'frist in the line'...instead of getting by index....uhh really need to 
   let pp1 = free1.getOnePoint();
   // generator goes through the list
@@ -110,23 +111,32 @@ let register_call = ( ()=> {
 
   console.log(pp1.id, pp2.id, pp3.id);
   // let pp3 = pp2.getOneLinked();
-  
+
   
   // lol, relative to polygon or absolute...another issue
-  let d1 = new Dot(250, 280);
-  let d3 = new Dot(230, 320);
+  let d1 = new Dot(280, 280);
+  let d3 = new Dot(250, 320);
   // let d2 = new Dot(130, 130);
   // d1.addNeighbor(d2);
   
-  // keep adding neighbors to d1
+  // keep adding neighbors to the custom polygon
   d1.addNeighbor(d3);
   d1.addNeighbor(pp1);
   d1.addNeighbor(pp2);
   d3.addNeighbor(pp2);
   d3.addNeighbor(pp3);
-  // Need to register edge after the edge is added!! To 'update cache'
+  // Need to register edge of points after the edge is added!! To 'update cache'
   free1.registerEdges(d1, d3);
   
+  let linkedEdges = free1.getLinkedLines(d1);
+  console.log(d1.id, linkedEdges);
+  for (let i=0;i<
+  linkedEdges.length-1;i++) {
+    console.log(linkedEdges[i], linkedEdges[i+1]);
+    free1.registerOtherFn(linkedEdges[i].drawAngle, linkedEdges[i], linkedEdges[i+1]);
+  }
+  //internal call. call drawAngle instead...from some register...
+  // angleBetweenVectors(linkedEdges[0].p1, linkedEdges[0].p2);
   // free1.highlightLine(d1,d2);
   console.log(free1.register_shape);
   console.log(free1.__proto__);

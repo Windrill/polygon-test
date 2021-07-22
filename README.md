@@ -15,3 +15,10 @@ edges (for ngon) are currently implemented as a matrix + key-value, sorted low-i
 
 computation practices
 should go in another file. eg, (single) polygon outline tracing
+
+
+todo
+make all rendering text a type and check for collisions for all texts at runtime
+constructor (text, x, y) <---maybe add a relative reference point, so the supplementary line points away from the reference point n doesnt cross the point
+add_reference_point(x,y)
+if collide, use some indicator...

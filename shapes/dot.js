@@ -2,6 +2,7 @@ let p_id = 0;
 class Dot {
   constructor(x,y, r=10, polygon=null) {
     this.id = p_id++;
+    // a list of points
     this.linked = {};
     this.x = x;
     this.y = y;
@@ -95,5 +96,9 @@ class Dot {
   }
   subtract(other) {
     return {x: this.x - other.x, y: this.y - other.y};
+  }
+  equals(other) {
+    let neg = (x,y) => (x-y<0.0001 && x-y > 0);
+    return this.id == other.id || (neg(this.x, other.x) && neg(this.y, other.y));
   }
 }
