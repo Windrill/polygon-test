@@ -25,7 +25,13 @@ function c2p(x, y) {
   // console.log(x, y, Math.atan2(y,x), r, yang, xang);
   return [r, yang];
 }
+// need to get 'vector angle'
+function vecangle(vec) {
+  return RAD2ANG(Math.atan2(vec.y, vec.x));
+}
 
+
+// similar to anglebetweenvectors
 // what is a 3d cross - 3d dot like.....what does that num even mean
 function getangle(x, y) {
   // console.log(x.x, x.y, y.x, y.y)

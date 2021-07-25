@@ -112,7 +112,6 @@ let register_call = ( ()=> {
   console.log(pp1.id, pp2.id, pp3.id);
   // let pp3 = pp2.getOneLinked();
 
-  
   // lol, relative to polygon or absolute...another issue
   let d1 = new Dot(280, 280);
   let d3 = new Dot(250, 320);
@@ -127,7 +126,8 @@ let register_call = ( ()=> {
   d3.addNeighbor(pp3);
   // Need to register edge of points after the edge is added!! To 'update cache'
   free1.registerEdges(d1, d3);
-  
+
+  getNgonOutline(free1);  
   let linkedEdges = free1.getLinkedLines(d1);
   console.log(d1.id, linkedEdges);
   for (let i=0;i<
