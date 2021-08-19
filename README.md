@@ -2,6 +2,7 @@ tested:
 - polyton mesh consists of vertices (VV) and lines, not coupled/sorted
 - faces are implied, and calculated through looping vertices
 - line segmenting
+- polygon edge traversal, half-baked outline traversal
 
 next:
 - group common functions (triangle area, w/ options eg. point/angle/line)

@@ -114,7 +114,7 @@ let register_call = ( ()=> {
 
   // lol, relative to polygon or absolute...another issue
   let d1 = new Dot(280, 280);
-  let d3 = new Dot(250, 320);
+  let d3 = new Dot(310, 320);
   // let d2 = new Dot(130, 130);
   // d1.addNeighbor(d2);
   
@@ -127,18 +127,22 @@ let register_call = ( ()=> {
   // Need to register edge of points after the edge is added!! To 'update cache'
   free1.registerEdges(d1, d3);
 
-  getNgonOutline(free1);  
+  let lines = getNgonOutline(free1);  
+  console.log(lines); 
+  free1.drawEdgeList(lines);
+  // binding: function, 'this', args
+  // free1.registerOtherFn(free1.drawEdgeList, free1, lines);
   let linkedEdges = free1.getLinkedLines(d1);
   console.log(d1.id, linkedEdges);
   for (let i=0;i<
   linkedEdges.length-1;i++) {
     console.log(linkedEdges[i], linkedEdges[i+1]);
-    free1.registerOtherFn(linkedEdges[i].drawAngle, linkedEdges[i], linkedEdges[i+1]);
+    // free1.registerOtherFn(linkedEdges[i].drawAngle, linkedEdges[i], linkedEdges[i+1]);
   }
   //internal call. call drawAngle instead...from some register...
   // angleBetweenVectors(linkedEdges[0].p1, linkedEdges[0].p2);
   // free1.highlightLine(d1,d2);
-  console.log(free1.register_shape);
+  // console.log(free1.register_shape);
   console.log(free1.__proto__);
   console.log(free1.draw);
   draw_call.add(square);

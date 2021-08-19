@@ -5,6 +5,9 @@ class cdrawable {
     this.edges = [];
 
     this.otherCalls = []; // 'debug' calls...
+    // this is used when constructor is called........
+    this.edgeMatrix = {};
+
   }
   // pushes actually there's just going to be 1 link per 2 lines???
   // no i think there are 2 links per 2 lines! 
@@ -37,7 +40,12 @@ class cdrawable {
       this.register_shape[i].draw();
     }
   }
-
+  // a polygon???
+  addEdge(line) {
+  //   console.log("Shouldnt be run", this.addEdge, this.__proto__);
+    // console.log(this.constructor.name);
+    this.edges.push(line);
+  }
   draw() {
     if (this.sides==0) {
       ctx.beginPath();
@@ -59,7 +67,7 @@ class cdrawable {
       this.otherCalls[a]();
     }
   }
-}
+} // end cdrawable
 // Explicitly managed edges...???
 // Don't 
 
@@ -81,7 +89,7 @@ class Polygon extends cdrawable {
   constructor(ctx,x=100,y=100,r=5, sides=0) {
     super();
     console.log("Creating polygon with ", sides, " sides");
-    console.log(arguments);
+    // console.log(arguments);
     // convex polygon intersection? no issue....since, it checks all edges........// and check smth completely inside another?
     this.points = {};
     // all 'shapes' with areas, you put it here
@@ -100,8 +108,9 @@ class Polygon extends cdrawable {
       for(let i=0;i<sides;i++) {
         px = (this.x) + r*Math.cos(i*step);
         py = (this.y) + r*Math.sin(i*step);
-        console.log(px, py);
+        // console.log(px, py);
         d1 = new Dot(px, py);
+        this.trackLeftmost(d1);
         this.points[d1.id] = d1;
 
         // Push edges
@@ -110,11 +119,13 @@ class Polygon extends cdrawable {
           //this.edges.push(new Line(this.points[this.points.length-1], this.points[this.points.length-2]));
         } else {
           // drawing from 'right' to 'left' since i'm turning clockwise
-          this.edges.push(new Line(d1, d2));
+          this.addEdge(new Line(d1, d2));
+          // this.edges.push(new Line(d1, d2));
         }
         d2 = d1;
       } // End looping through sides
-      this.edges.push(new Line(d1, orgPoint));
+      this.addEdge(new Line(d1, orgPoint));
+      // this.edges.push(new Line(d1, orgPoint));
     } // End drawing sided polygon
   } // end constructor
 
@@ -185,7 +196,6 @@ class Polygon extends cdrawable {
         //console.log(p.id, bb, Object.keys(trav));
       }
     }
-    //console.log(ret);
     //if (ret.length == 0)
     //  console.log(p, arr, trav);
     // i believe everything has had their turn
@@ -211,6 +221,7 @@ class Polygon extends cdrawable {
     return this.points[id];
   }
   getOnePoint() {
+    if (this.leftmostPoint) return this.leftmostPoint;
     return this.points[Object.keys(this.points)[0]];
   }
   // get line segment
@@ -223,7 +234,8 @@ class Polygon extends cdrawable {
     //console.log(newLine, newLine.p1);
     let d1 = newLine.getP1();
     this.points[d1.id] = d1;
-    this.edges.push(newLine);
+    this.addEdge(newLine);
+    // this.edges.push(newLine);
     
     return this.points[d1.id];
   }
@@ -240,9 +252,14 @@ class Polygon extends cdrawable {
     }
     return false;
   }
+  trackLeftmost(point) {
+    if(!this.leftmostPoint || this.leftmostPoint.x > point.x)
+      this.leftmostPoint = point;
+  }
   // add a point and return it.....
   addpoint(point) {
     this.points[point.id] = point;
+    this.trackLeftmost(point);
     // need to update edges!!!
     // if the edge doesn't exist in a polygon, need to add them?
     return point;
@@ -251,7 +268,8 @@ class Polygon extends cdrawable {
   // err....link 2 lines within the polygon...
   linkline(i, j) {
     let l = new Line(i, j);
-    this.edges.push(l);
+    this.addEdge(l);
+    // this.edges.push(l);
     return l;
   }
 } // end class polygon
@@ -265,8 +283,12 @@ class anygon extends Polygon {
     this.sides = -1;
     // passively managed....or not managed
     // passively managed hence follows points! you must add all neighboring points to the anygon, anygon won't search the rest of connected points to edges
-    this.edgeMatrix = {};
     // points are still in an array???!
+  }
+  addEdge(line) {
+    console.log(`adding edge by registering the dots ${line.p1.id} ${line.p2.id}`);
+    // this.edges.push(line);
+    this.registerEdges(line.p1, line.p2);
   }
 
   // Oh be assured that the edge will only exist as 'low-id', 'high-id'
@@ -289,30 +311,40 @@ class anygon extends Polygon {
         // this.points.push(args[i]);
         // lol, put sorted edges from low-id to high-id in edges cache
         let lObj = args[i].linked;
+        console.log(`finding edges of `,lObj, args[i].id);
         // console.log(lObj); // all neighbors
         let id1 = args[i].id;
-        for (let l in lObj) {
+        for (let l in lObj) { // search all neighbors
+          console.log(`${id1}: ${l}`);
           let id2 = lObj[l].id; //id2: 6, l: "6"
-          // wanna link?
           if (id2 < id1) {
             // link from their perspective
-            // console.log("registering....from", lObj[l].id);
+            console.log("registering....from", lObj[l].id, id1);
             this.registerEdges(lObj[l]);
           }
           if (!this.edgeMatrix[id1]) this.edgeMatrix[id1] = {};
-          // if edg already recorded, then dont record
-          if (this.edgeMatrix[id1][id2]) {
+          // if edge already recorded, then dont record
+          if (typeof this.edgeMatrix[id1][id2] != 'undefined') {
+            console.log("Already exists", id1, id2);
             continue;
           } else {
-            // console.log(args[i], lObj[l]);
+            console.log(`REG ${id1} ${id2}`);
+            //${this.edgeMatrix[id1][id2]}
             this.edgeMatrix[id1][id2] = this.edges.length;
+            // hmmm can i registeredge with this
             this.edges.push(new Line(args[i], lObj[l])); // smaller id to larger id
           }
         }
       }
       
     }
-  } // end addpoints
+  } // end registeredges
+  drawEdgeList(lines) {
+    console.log(lines);
+    for (let i=0;i<lines.length-1;i++) {
+      this.highlightLine(lines[i], lines[i+1]);
+    }
+  }
   // point or id...
   highlightLine(id1, id2, thickness=5) {
     let i1=0; let i2=0;
@@ -321,14 +353,15 @@ class anygon extends Polygon {
       i2 = id2.id;
     }
     else if (!isNaN(id1)) {
-      i1 = id2; i2 = id2;
+      i1 = id2; i2 = id1;
     } else {
       console.log("Wrong input!! Line is not number or dot"); return;
     }
     //end type-based check....
     let ids = [i1,i2];
     if (i1 > i2) ids = [i2, i1];
-    if (this.edgeMatrix[ids[0]] && this.edgeMatrix[ids[0]][ids[1]]) {
+    // edgematrix also has 1 zero-index
+    if (this.edgeMatrix[ids[0]] && typeof this.edgeMatrix[ids[0]][ids[1]] != 'undefined') {
       let edgePos = this.edgeMatrix[ids[0]][ids[1]];
       console.log(edgePos);
       this.edges[edgePos].thick(thickness);
