@@ -1,0 +1,85 @@
+<html>
+  <head></head>
+<body>
+<canvas id="c" width="1400" height="1500">
+</canvas>
+<script src="./common/matrix.js"></script>
+<script src="./common/js_lib.js"></script>
+<script src="./common/angles.js"></script>
+<script src="./common/click_register.js"></script>
+<script src="./shapes/polygon.js"></script>
+<script src="./shapes/dot.js"></script>
+
+<script src="./tools.js"></script>
+<script src="./computations.js"></script>
+<script src="./common/constants.js"></script>
+<script>
+let canvas = document.getElementById("c");
+let ctx = canvas.getContext('2d');
+
+// tracker that tracks drawing
+let draw_call = ( ()=> {
+  let draws = [];
+  return {
+    render: () => {    
+      for (let i=0;i<draws.length;i++) {
+        // check for cdrawable     
+        if (typeof draws[i].draw == 'function')
+        draws[i].draw();
+      }
+    },
+    add: (obj) => {
+      draws.push(obj);
+    }
+  }; // end return statement
+})(); // end immediately invoked function expression
+
+let box = new Polygon(ctx, 100, 100, 50, 4);
+draw_call.add(box);
+
+
+let V1 = [100, 50];
+let m = new Matrix();
+console.log(m.multVector(V1));
+
+let mm = new ShapeMatrix(box);
+mm.setrotate(0.02);
+mm.update();
+let keyReg = {};
+document.addEventListener('keydown', (e)=>{
+  console.log((e.key), typeof(e.key));
+  let listOfCBs = keyReg[e.key];
+  
+  for(let l in listOfCBs) {
+    listOfCBs[l]();
+  }
+});
+// list and single obj...differentiate
+keyReg['a'] = [() => {
+  mm.settrans(10,10);
+  mm.update();
+}];
+keyReg['s'] = [() => {
+  let centers = mm.getcenter();
+  mm.setscale(2, centers[0], centers[1]);
+  mm.update();
+}];
+keyReg['x'] = [() => {
+  let centers = mm.getcenter();
+  mm.setscale(0.5, centers[0], centers[1]);
+  mm.update();
+}];
+
+let interval = setInterval(function(){
+	ctx.clearRect(0,0,canvas.width, canvas.height);
+	// draw all the objects
+	draw_call.render();
+  // mm.update();
+
+}, 30);
+
+
+
+</script>
+</body>
+</html>

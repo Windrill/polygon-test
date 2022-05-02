@@ -11,6 +11,15 @@ class Dot {
     this.circleRadius = r;
     this.color = randomHex();
   }
+  clone() {
+    let d = new Dot();
+    p_id--;
+    Object.assign(d.linked, this.linked);
+    d.x = this.x;
+    d.y = this.y;
+    d.circleRadius = this.circleRadius;
+    return d;
+  }
   draw(hover=false, clicked=false) {
     // draw a circle on purpose, to mak it bigger
     ctx.beginPath();

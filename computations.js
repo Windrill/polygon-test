@@ -66,9 +66,7 @@ function getNgonOutline(ngon, startpoint=null) {
   //   console.log(t);
   // }
 }
-function trace() {
 
-}
 // c is left of ab
 function left(a, b, c, debug=false) {
   if (debug) 

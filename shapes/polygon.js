@@ -128,10 +128,21 @@ class Polygon extends cdrawable {
       // this.edges.push(new Line(d1, orgPoint));
     } // End drawing sided polygon
   } // end constructor
+  getcenter() {
+    let sx = 0; let sy = 0; let cy = 0;
+    for (let k in this.points) {
+      sx += this.points[k].x;
+      sy += this.points[k].y;
+      cy++;
+    }
+    return [sx/cy, sy/cy];
+  }
 
+  getpoints() {
+    return this.points;
+  }
   calc() {
     let trav = {};
-    
     // put all edges in this.edges; edges are consisted of 2 points, 4 points in arr i guess
     for (let v=0;v<pointsLength;v++) {
       let vObj = this.points[v];
